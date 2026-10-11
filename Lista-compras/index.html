@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Lista de Compras</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      background: #f3f4f6;
+      color: #111827;
+      min-height: 100%;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: #16a34a;
+      color: white;
+      padding: 16px;
+      text-align: center;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, .15);
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 20px;
+    }
+
+    main {
+      padding: 12px;
+      padding-bottom: 140px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 14px;
+      padding: 14px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, .08);
+      margin-bottom: 12px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: bold;
+      color: #374151;
+      margin-bottom: 5px;
+    }
+
+    input {
+      width: 100%;
+      padding: 14px;
+      font-size: 17px;
+      border-radius: 10px;
+      border: 1px solid #d1d5db;
+      background: #f9fafb;
+    }
+
+    input:focus {
+      outline: 2px solid #16a34a;
+      border-color: #16a34a;
+    }
+
+    .form {
+      display: grid;
+      gap: 10px;
+    }
+
+    button {
+      width: 100%;
+      padding: 16px;
+      font-size: 17px;
+      font-weight: bold;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+    }
+
+    .adicionar {
+      background: #16a34a;
+      color: white;
+    }
+
+    .adicionar:active {
+      background: #15803d;
+    }
+
+    .backup {
+      background: #dbeafe;
+      color: #1d4ed8;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    .backup:active {
+      background: #bfdbfe;
+    }
+
+    .importar {
+      cursor: pointer;
+    }
+
+    .limpar {
+      background: #fee2e2;
+      color: #b91c1c;
+    }
+
+    .item {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .item-nome {
+      font-size: 17px;
+      font-weight: bold;
+      word-break: break-word;
+    }
+
+    .item-status {
+      font-size: 13px;
+      margin-top: 4px;
+      color: #6b7280;
+    }
+
+    .pendente {
+      color: #d97706;
+      font-weight: bold;
+    }
+
+    .preenchido {
+      color: #16a34a;
+      font-weight: bold;
+    }
+
+    .campos {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .item-total {
+      margin-top: 12px;
+      font-size: 17px;
+      font-weight: bold;
+      color: #16a34a;
+      text-align: right;
+    }
+
+    .remover {
+      width: 44px;
+      height: 44px;
+      padding: 0;
+      font-size: 20px;
+      background: #fee2e2;
+      color: #b91c1c;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .vazio {
+      text-align: center;
+      color: #6b7280;
+      padding: 24px 10px;
+      font-size: 15px;
+    }
+
+    .barra-total {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: white;
+      border-top: 1px solid #e5e7eb;
+      padding: 14px 16px calc(14px + env(safe-area-inset-bottom));
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 -2px 8px rgba(0, 0, 0, .08);
+    }
+
+    .barra-total span {
+      font-size: 15px;
+      font-weight: bold;
+      color: #374151;
+    }
+
+    .valor-total {
+      font-size: 21px;
+      font-weight: bold;
+      color: #16a34a;
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <h1>🛒 Lista de Compras</h1>
+  </header>
+
+  <main>
+    <form id="formItem" class="card">
+      <div class="form">
+        <div>
+          <label for="item">Adicionar item à lista</label>
+          <input id="item" type="text" placeholder="Ex.: Arroz, sabonete, refri..." autocomplete="off" />
+        </div>
+
+        <button type="submit" class="adicionar">+ Adicionar item</button>
+      </div>
+    </form>
+
+    <div id="lista"></div>
+
+    <div id="vazio" class="vazio">
+      Nenhum item adicionado ainda.
+    </div>
+
+    <div class="card">
+      <button type="button" id="exportar" class="backup">
+        💾 Salvar backup da lista
+      </button>
+
+      <label for="importar" class="backup importar">
+        📂 Carregar backup
+      </label>
+      <input type="file" id="importar" accept=".json" hidden />
+
+      <button type="button" id="limpar" class="limpar">
+        Limpar toda a lista
+      </button>
+    </div>
+  </main>
+
+  <div class="barra-total">
+    <span>Total geral</span>
+    <div id="totalGeral" class="valor-total">R$ 0,00</div>
+  </div>
+
+  <script>
+    let itens = [];
+
+    try {
+      itens = JSON.parse(localStorage.getItem("listaCompras") || "[]");
+
+      if (!Array.isArray(itens)) {
+        itens = [];
+      }
+    } catch (erro) {
+      itens = [];
+    }
+
+    const form = document.getElementById("formItem");
+    const itemInput = document.getElementById("item");
+    const lista = document.getElementById("lista");
+    const totalGeral = document.getElementById("totalGeral");
+    const vazio = document.getElementById("vazio");
+    const importarInput = document.getElementById("importar");
+
+    function converterNumero(texto) {
+      if (texto === null || texto === undefined) return 0;
+
+      texto = String(texto)
+        .trim()
+        .replace("R$", "")
+        .replace(/\s/g, "");
+
+      if (texto === "") return 0;
+
+      if (texto.includes(",") && texto.includes(".")) {
+        texto = texto.replace(/\./g, "").replace(",", ".");
+      } else if (texto.includes(",")) {
+        texto = texto.replace(",", ".");
+      }
+
+      const numero = Number(texto);
+      return isNaN(numero) ? 0 : numero;
+    }
+
+    function formatar(valor) {
+      return Number(valor || 0).toLocaleString("pt-BR", {
+        style: "currency",
+        currency: "BRL"
+      });
+    }
+
+    function salvar() {
+      localStorage.setItem("listaCompras", JSON.stringify(itens));
+    }
+
+    function calcular() {
+      let soma = 0;
+      lista.innerHTML = "";
+
+      itens.forEach((item, index) => {
+        const totalItem = Number(item.quantidade || 0) * Number(item.valor || 0);
+        soma += totalItem;
+
+        const preenchido =
+          item.quantidade > 0 && item.valor > 0;
+
+        const card = document.createElement("div");
+        card.className = "card";
+
+        card.innerHTML = `
+          <div class="item">
+            <div>
+              <div class="item-nome">${item.item}</div>
+              <div class="item-status ${preenchido ? "preenchido" : "pendente"}">
+                ${preenchido ? "✔ Valor informado" : "⚠ Falta informar valor"}
+              </div>
+            </div>
+
+            <button type="button" class="remover" data-index="${index}">✕</button>
+          </div>
+
+          <div class="campos">
+            <div>
+              <label for="quantidade-${index}">Quantidade</label>
+              <input
+                id="quantidade-${index}"
+                type="text"
+                inputmode="decimal"
+                placeholder="0"
+                value="${item.quantidade || ""}"
+                data-campo="quantidade"
+                data-index="${index}"
+              />
+            </div>
+
+            <div>
+              <label for="valor-${index}">Valor unitário</label>
+              <input
+                id="valor-${index}"
+                type="text"
+                inputmode="decimal"
+                placeholder="0,00"
+                value="${item.valor || ""}"
+                data-campo="valor"
+                data-index="${index}"
+              />
+            </div>
+          </div>
+
+          <div class="item-total">
+            ${formatar(totalItem)}
+          </div>
+        `;
+
+        lista.appendChild(card);
+      });
+
+      totalGeral.textContent = formatar(soma);
+      vazio.style.display = itens.length === 0 ? "block" : "none";
+
+      document.querySelectorAll(".remover").forEach(botao => {
+        botao.addEventListener("click", () => {
+          const index = Number(botao.dataset.index);
+          itens.splice(index, 1);
+          salvar();
+          calcular();
+        });
+      });
+
+      document.querySelectorAll("input[data-campo]").forEach(campo => {
+        campo.addEventListener("input", () => {
+          const index = Number(campo.dataset.index);
+          const tipo = campo.dataset.campo;
+          const valor = converterNumero(campo.value);
+
+          itens[index][tipo] = valor;
+          salvar();
+          atualizarTotais();
+        });
+      });
+    }
+
+    function atualizarTotais() {
+      let soma = 0;
+
+      itens.forEach(item => {
+        soma += Number(item.quantidade || 0) * Number(item.valor || 0);
+      });
+
+      totalGeral.textContent = formatar(soma);
+    }
+
+    form.addEventListener("submit", function (evento) {
+      evento.preventDefault();
+
+      const item = itemInput.value.trim();
+
+      if (!item) {
+        itemInput.focus();
+        return;
+      }
+
+      itens.push({
+        item: item,
+        quantidade: 0,
+        valor: 0
+      });
+
+      itemInput.value = "";
+      itemInput.focus();
+
+      salvar();
+      calcular();
+    });
+
+    document.getElementById("exportar").addEventListener("click", () => {
+      if (itens.length === 0) {
+        alert("A lista está vazia.");
+        return;
+      }
+
+      const dados = JSON.stringify(itens, null, 2);
+      const blob = new Blob([dados], { type: "application/json" });
+      const link = document.createElement("a");
+      const data = new Date().toISOString().slice(0, 10);
+
+      link.href = URL.createObjectURL(blob);
+      link.download = `lista-compras-${data}.json`;
+      link.click();
+
+      URL.revokeObjectURL(link.href);
+
+      alert("Backup salvo! Verifique a pasta de Downloads do navegador.");
+    });
+
+    importarInput.addEventListener("change", evento => {
+      const arquivo = evento.target.files[0];
+
+      if (!arquivo) return;
+
+      const leitor = new FileReader();
+
+      leitor.onload = () => {
+        try {
+          const dadosImportados = JSON.parse(leitor.result);
+
+          if (!Array.isArray(dadosImportados)) {
+            alert("Arquivo de backup inválido.");
+            return;
+          }
+
+          itens = dadosImportados;
+          salvar();
+          calcular();
+
+          alert("Backup carregado com sucesso!");
+        } catch (erro) {
+          alert("Não foi possível ler o arquivo de backup.");
+        }
+      };
+
+      leitor.readAsText(arquivo);
+      evento.target.value = "";
+    });
+
+    document.getElementById("limpar").addEventListener("click", () => {
+      if (itens.length === 0) return;
+
+      if (confirm("Deseja realmente limpar toda a lista?")) {
+        itens = [];
+        salvar();
+        calcular();
+      }
+    });
+
+    calcular();
+  </script>
+
+</body>
+</html>
